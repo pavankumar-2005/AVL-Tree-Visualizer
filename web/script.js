@@ -38,16 +38,41 @@ function drawNode(ctx, node) {
     }
 }
 
+function clearCanvas(ctx, canvas) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function insertNode(root, key, depth = 1) {
+    if (key < root.key) {
+        if (!root.left) {
+            root.left = new TreeNode(key, root.x - 100, root.y + 100);
+        } else {
+            insertNode(root.left, key, depth + 1);
+        }
+    } else {
+        if (!root.right) {
+            root.right = new TreeNode(key, root.x + 100, root.y + 100);
+        } else {
+            insertNode(root.right, key, depth + 1);
+        }
+    }
+}
+
 window.onload = function() {
     const canvas = document.getElementById("treeCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Example static tree
-    const root = new TreeNode(30, 400, 100);
-    root.left = new TreeNode(20, 300, 200);
-    root.right = new TreeNode(40, 500, 200);
-    root.left.left = new TreeNode(10, 250, 300);
-    root.left.right = new TreeNode(25, 350, 300);
+    // Root node
+    let root = new TreeNode(30, 400, 100);
 
+    // Example insertions
+    insertNode(root, 20);
+    insertNode(root, 40);
+    insertNode(root, 10);
+    insertNode(root, 25);
+    insertNode(root, 35);
+    insertNode(root, 50);
+
+    clearCanvas(ctx, canvas);
     drawNode(ctx, root);
 };
