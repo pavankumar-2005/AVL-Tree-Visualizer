@@ -11,19 +11,16 @@ class TreeNode {
 function drawNode(ctx, node) {
     if (!node) return;
 
-    // Draw circle
     ctx.beginPath();
     ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
     ctx.fillStyle = "#87CEEB";
     ctx.fill();
     ctx.stroke();
 
-    // Draw key
     ctx.fillStyle = "black";
     ctx.font = "16px Arial";
     ctx.fillText(node.key, node.x - 8, node.y + 5);
 
-    // Draw edges
     if (node.left) {
         ctx.moveTo(node.x, node.y);
         ctx.lineTo(node.left.x, node.left.y);
@@ -42,37 +39,35 @@ function clearCanvas(ctx, canvas) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function insertNode(root, key, depth = 1) {
+function insertNode(root, key) {
     if (key < root.key) {
         if (!root.left) {
             root.left = new TreeNode(key, root.x - 100, root.y + 100);
         } else {
-            insertNode(root.left, key, depth + 1);
+            insertNode(root.left, key);
         }
     } else {
         if (!root.right) {
             root.right = new TreeNode(key, root.x + 100, root.y + 100);
         } else {
-            insertNode(root.right, key, depth + 1);
+            insertNode(root.right, key);
         }
     }
 }
 
-window.onload = function() {
+let root = null;
+
+function addNode() {
     const canvas = document.getElementById("treeCanvas");
     const ctx = canvas.getContext("2d");
+    const value = parseInt(document.getElementById("nodeValue").value);
 
-    // Root node
-    let root = new TreeNode(30, 400, 100);
-
-    // Example insertions
-    insertNode(root, 20);
-    insertNode(root, 40);
-    insertNode(root, 10);
-    insertNode(root, 25);
-    insertNode(root, 35);
-    insertNode(root, 50);
+    if (!root) {
+        root = new TreeNode(value, 400, 100);
+    } else {
+        insertNode(root, value);
+    }
 
     clearCanvas(ctx, canvas);
     drawNode(ctx, root);
-};
+}
