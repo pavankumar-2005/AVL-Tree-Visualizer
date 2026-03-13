@@ -1,187 +1,168 @@
-class TreeNode {
-    constructor(key) {
-        this.key = key;
-        this.height = 1;
+class Node {
+    constructor(value) {
+        this.value = value;
         this.left = null;
         this.right = null;
+        this.height = 1;
     }
 }
 
-// Utility functions
-function height(node) {
-    return node ? node.height : 0;
-}
+class AVLTree {
+    constructor() { this.root = null; }
 
-function getBalance(node) {
-    return node ? height(node.left) - height(node.right) : 0;
-}
+    getHeight(node) { return node ? node.height : 0; }
 
-function updateHeight(node) {
-    node.height = 1 + Math.max(height(node.left), height(node.right));
-}
+    getBalance(node) { return node ? this.getHeight(node.left) - this.getHeight(node.right) : 0; }
 
-// Rotations
-function rightRotate(y) {
-    let x = y.left;
-    let T2 = x.right;
-
-    x.right = y;
-    y.left = T2;
-
-    updateHeight(y);
-    updateHeight(x);
-
-    return x;
-}
-
-function leftRotate(x) {
-    let y = x.right;
-    let T2 = y.left;
-
-    y.left = x;
-    x.right = T2;
-
-    updateHeight(x);
-    updateHeight(y);
-
-    return y;
-}
-
-// AVL Insert
-function insert(node, key) {
-    if (!node) return new TreeNode(key);
-
-    if (key < node.key) {
-        node.left = insert(node.left, key);
-    } else if (key > node.key) {
-        node.right = insert(node.right, key);
-    } else {
-        return node; // no duplicates
+    rightRotate(y) {
+        let x = y.left;
+        let T2 = x.right;
+        x.right = y;
+        y.left = T2;
+        y.height = Math.max(this.getHeight(y.left), this.getHeight(y.right)) + 1;
+        x.height = Math.max(this.getHeight(x.left), this.getHeight(x.right)) + 1;
+        return x;
     }
 
-    updateHeight(node);
-
-    let balance = getBalance(node);
-
-    if (balance > 1 && key < node.left.key) return rightRotate(node);
-    if (balance < -1 && key > node.right.key) return leftRotate(node);
-    if (balance > 1 && key > node.left.key) {
-        node.left = leftRotate(node.left);
-        return rightRotate(node);
-    }
-    if (balance < -1 && key < node.right.key) {
-        node.right = rightRotate(node.right);
-        return leftRotate(node);
+    leftRotate(x) {
+        let y = x.right;
+        let T2 = y.left;
+        y.left = x;
+        x.right = T2;
+        x.height = Math.max(this.getHeight(x.left), this.getHeight(x.right)) + 1;
+        y.height = Math.max(this.getHeight(y.left), this.getHeight(y.right)) + 1;
+        return y;
     }
 
-    return node;
-}
+    insert(node, value) {
+        if (!node) return new Node(value);
+        if (value < node.value) node.left = this.insert(node.left, value);
+        else if (value > node.value) node.right = this.insert(node.right, value);
+        else return node;
 
-// Find minimum node
-function minValueNode(node) {
-    let current = node;
-    while (current.left) current = current.left;
-    return current;
-}
+        node.height = 1 + Math.max(this.getHeight(node.left), this.getHeight(node.right));
+        let balance = this.getBalance(node);
 
-// AVL Delete
-function deleteAVL(node, key) {
-    if (!node) return node;
-
-    if (key < node.key) {
-        node.left = deleteAVL(node.left, key);
-    } else if (key > node.key) {
-        node.right = deleteAVL(node.right, key);
-    } else {
-        if (!node.left || !node.right) {
-            node = node.left ? node.left : node.right;
-        } else {
-            let temp = minValueNode(node.right);
-            node.key = temp.key;
-            node.right = deleteAVL(node.right, temp.key);
+        if (balance > 1 && value < node.left.value) return this.rightRotate(node);
+        if (balance < -1 && value > node.right.value) return this.leftRotate(node);
+        if (balance > 1 && value > node.left.value) {
+            node.left = this.leftRotate(node.left);
+            return this.rightRotate(node);
         }
+        if (balance < -1 && value < node.right.value) {
+            node.right = this.rightRotate(node.right);
+            return this.leftRotate(node);
+        }
+        return node;
     }
 
-    if (!node) return node;
-
-    updateHeight(node);
-
-    let balance = getBalance(node);
-
-    if (balance > 1 && getBalance(node.left) >= 0) return rightRotate(node);
-    if (balance > 1 && getBalance(node.left) < 0) {
-        node.left = leftRotate(node.left);
-        return rightRotate(node);
-    }
-    if (balance < -1 && getBalance(node.right) <= 0) return leftRotate(node);
-    if (balance < -1 && getBalance(node.right) > 0) {
-        node.right = rightRotate(node.right);
-        return leftRotate(node);
+    minValueNode(node) {
+        let current = node;
+        while (current.left !== null) current = current.left;
+        return current;
     }
 
-    return node;
+    delete(node, value) {
+        if (!node) return node;
+        if (value < node.value) node.left = this.delete(node.left, value);
+        else if (value > node.value) node.right = this.delete(node.right, value);
+        else {
+            if (!node.left || !node.right) {
+                node = node.left ? node.left : node.right;
+            } else {
+                let temp = this.minValueNode(node.right);
+                node.value = temp.value;
+                node.right = this.delete(node.right, temp.value);
+            }
+        }
+        if (!node) return node;
+
+        node.height = 1 + Math.max(this.getHeight(node.left), this.getHeight(node.right));
+        let balance = this.getBalance(node);
+
+        if (balance > 1 && this.getBalance(node.left) >= 0) return this.rightRotate(node);
+        if (balance > 1 && this.getBalance(node.left) < 0) {
+            node.left = this.leftRotate(node.left);
+            return this.rightRotate(node);
+        }
+        if (balance < -1 && this.getBalance(node.right) <= 0) return this.leftRotate(node);
+        if (balance < -1 && this.getBalance(node.right) > 0) {
+            node.right = this.rightRotate(node.right);
+            return this.leftRotate(node);
+        }
+        return node;
+    }
 }
 
-// Drawing functions
-function drawTree(ctx, node, x, y, spacing) {
-    if (!node) return;
+const tree = new AVLTree();
+const svg = document.getElementById('tree-svg');
 
-    ctx.beginPath();
-    ctx.arc(x, y, 20, 0, 2 * Math.PI);
-    ctx.fillStyle = "#87CEEB";
-    ctx.fill();
-    ctx.stroke();
+function drawTree() {
+    svg.innerHTML = '';
+    if (tree.root) {
+        renderNode(tree.root, 400, 50, 200);
+    }
+}
 
-    ctx.fillStyle = "black";
-    ctx.font = "16px Arial";
-    ctx.fillText(node.key, x - 8, y + 5);
-
+function renderNode(node, x, y, offset) {
     if (node.left) {
-        ctx.moveTo(x, y);
-        ctx.lineTo(x - spacing, y + 80);
-        ctx.stroke();
-        drawTree(ctx, node.left, x - spacing, y + 80, spacing / 1.5);
+        const lx = x - offset;
+        const ly = y + 70;
+        line(x, y, lx, ly);
+        renderNode(node.left, lx, ly, offset / 1.8);
     }
     if (node.right) {
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + spacing, y + 80);
-        ctx.stroke();
-        drawTree(ctx, node.right, x + spacing, y + 80, spacing / 1.5);
+        const rx = x + offset;
+        const ry = y + 70;
+        line(x, y, rx, ry);
+        renderNode(node.right, rx, ry, offset / 1.8);
+    }
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.classList.add('node');
+    
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", x);
+    circle.setAttribute("cy", y);
+    circle.setAttribute("r", 20);
+    
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", x);
+    text.setAttribute("y", y);
+    text.textContent = node.value;
+
+    g.appendChild(circle);
+    g.appendChild(text);
+    svg.appendChild(g);
+}
+
+function line(x1, y1, x2, y2) {
+    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    l.setAttribute("x1", x1);
+    l.setAttribute("y1", y1);
+    l.setAttribute("x2", x2);
+    l.setAttribute("y2", y2);
+    l.classList.add('link');
+    svg.appendChild(l);
+}
+
+function handleInsert() {
+    const val = parseInt(document.getElementById('nodeValue').value);
+    if (!isNaN(val)) {
+        tree.root = tree.insert(tree.root, val);
+        drawTree();
     }
 }
 
-function clearCanvas(ctx, canvas) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-// Global root
-let root = null;
-
-// Insert wrapper
-function addNode() {
-    const canvas = document.getElementById("treeCanvas");
-    const ctx = canvas.getContext("2d");
-    const value = parseInt(document.getElementById("nodeValue").value);
-
-    if (!isNaN(value)) {
-        root = insert(root, value);
-        clearCanvas(ctx, canvas);
-        drawTree(ctx, root, canvas.width / 2, 50, 150);
+function handleDelete() {
+    const val = parseInt(document.getElementById('nodeValue').value);
+    if (!isNaN(val)) {
+        tree.root = tree.delete(tree.root, val);
+        drawTree();
     }
 }
 
-// Global root already defined above
-let root = null;
-
-// Wrapper for delete button
-function removeNode() {
-    const canvas = document.getElementById("treeCanvas");
-    const ctx = canvas.getContext("2d");
-    const value = parseInt(document.getElementById("deleteValue").value);
-
-    if (!isNaN(value)) {
-        root = deleteAVL(root, value);   // call your AVL delete logic
-        clearCanvas(ctx, canvas);
-        drawTree(ctx, root, canvas.width / 2, 50, 150);
-    }
+function handleClear() {
+    tree.root = null;
+    drawTree();
 }
