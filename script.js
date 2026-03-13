@@ -84,57 +84,11 @@ function insert(node, key) {
     return node;
 }
 
-// AVL Delete
-function deleteNode(root, key) {
-    if (!root) return root;
-
-    if (key < root.key) {
-        root.left = deleteNode(root.left, key);
-    } else if (key > root.key) {
-        root.right = deleteNode(root.right, key);
-    } else {
-        // Node with one child or no child
-        if (!root.left || !root.right) {
-            root = root.left ? root.left : root.right;
-        } else {
-            // Node with two children: inorder successor
-            let temp = minValueNode(root.right);
-            root.key = temp.key;
-            root.right = deleteNode(root.right, temp.key);
-        }
-    }
-
-    if (!root) return root;
-
-    updateHeight(root);
-
-    let balance = getBalance(root);
-
-    // Balance cases
-    if (balance > 1 && getBalance(root.left) >= 0) return rightRotate(root);
-    if (balance > 1 && getBalance(root.left) < 0) {
-        root.left = leftRotate(root.left);
-        return rightRotate(root);
-    }
-    if (balance < -1 && getBalance(root.right) <= 0) return leftRotate(root);
-    if (balance < -1 && getBalance(root.right) > 0) {
-        root.right = rightRotate(root.right);
-        return leftRotate(root);
-    }
-
-    return root;
-}
-
-function minValueNode(node) {
-    let current = node;
-    while (current.left) current = current.left;
-    return current;
-}
-
 // Drawing functions
 function drawTree(ctx, node, x, y, spacing) {
     if (!node) return;
 
+    // Draw node
     ctx.beginPath();
     ctx.arc(x, y, 20, 0, 2 * Math.PI);
     ctx.fillStyle = "#87CEEB";
@@ -145,6 +99,7 @@ function drawTree(ctx, node, x, y, spacing) {
     ctx.font = "16px Arial";
     ctx.fillText(node.key, x - 8, y + 5);
 
+    // Draw children
     if (node.left) {
         ctx.moveTo(x, y);
         ctx.lineTo(x - spacing, y + 80);
@@ -172,17 +127,6 @@ function addNode() {
     const value = parseInt(document.getElementById("nodeValue").value);
 
     root = insert(root, value);
-
-    clearCanvas(ctx, canvas);
-    drawTree(ctx, root, canvas.width / 2, 50, 150);
-}
-
-function removeNode() {
-    const canvas = document.getElementById("treeCanvas");
-    const ctx = canvas.getContext("2d");
-    const value = parseInt(document.getElementById("nodeValue").value);
-
-    root = deleteNode(root, value);
 
     clearCanvas(ctx, canvas);
     drawTree(ctx, root, canvas.width / 2, 50, 150);
