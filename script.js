@@ -131,3 +131,44 @@ function addNode() {
     clearCanvas(ctx, canvas);
     drawTree(ctx, root, canvas.width / 2, 50, 150);
 }
+function deleteNode(root, key) {
+    if (root == null) return root;
+
+    if (key < root.key) {
+        root.left = deleteNode(root.left, key);
+    } else if (key > root.key) {
+        root.right = deleteNode(root.right, key);
+    } else {
+        if (root.left == null || root.right == null) {
+            root = root.left ? root.left : root.right;
+        } else {
+            let temp = minValueNode(root.right);
+            root.key = temp.key;
+            root.right = deleteNode(root.right, temp.key);
+        }
+    }
+
+    if (root == null) return root;
+
+    root.height = 1 + Math.max(height(root.left), height(root.right));
+
+    let balance = getBalance(root);
+
+    if (balance > 1 && getBalance(root.left) >= 0)
+        return rightRotate(root);
+
+    if (balance > 1 && getBalance(root.left) < 0) {
+        root.left = leftRotate(root.left);
+        return rightRotate(root);
+    }
+
+    if (balance < -1 && getBalance(root.right) <= 0)
+        return leftRotate(root);
+
+    if (balance < -1 && getBalance(root.right) > 0) {
+        root.right = rightRotate(root.right);
+        return leftRotate(root);
+    }
+
+    return root;
+}
