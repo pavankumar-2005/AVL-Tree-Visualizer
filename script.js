@@ -63,20 +63,58 @@ function insert(node, key) {
 
     let balance = getBalance(node);
 
-    // Left Left
     if (balance > 1 && key < node.left.key) return rightRotate(node);
-
-    // Right Right
     if (balance < -1 && key > node.right.key) return leftRotate(node);
-
-    // Left Right
     if (balance > 1 && key > node.left.key) {
         node.left = leftRotate(node.left);
         return rightRotate(node);
     }
-
-    // Right Left
     if (balance < -1 && key < node.right.key) {
+        node.right = rightRotate(node.right);
+        return leftRotate(node);
+    }
+
+    return node;
+}
+
+// Find minimum node
+function minValueNode(node) {
+    let current = node;
+    while (current.left) current = current.left;
+    return current;
+}
+
+// AVL Delete
+function deleteAVL(node, key) {
+    if (!node) return node;
+
+    if (key < node.key) {
+        node.left = deleteAVL(node.left, key);
+    } else if (key > node.key) {
+        node.right = deleteAVL(node.right, key);
+    } else {
+        if (!node.left || !node.right) {
+            node = node.left ? node.left : node.right;
+        } else {
+            let temp = minValueNode(node.right);
+            node.key = temp.key;
+            node.right = deleteAVL(node.right, temp.key);
+        }
+    }
+
+    if (!node) return node;
+
+    updateHeight(node);
+
+    let balance = getBalance(node);
+
+    if (balance > 1 && getBalance(node.left) >= 0) return rightRotate(node);
+    if (balance > 1 && getBalance(node.left) < 0) {
+        node.left = leftRotate(node.left);
+        return rightRotate(node);
+    }
+    if (balance < -1 && getBalance(node.right) <= 0) return leftRotate(node);
+    if (balance < -1 && getBalance(node.right) > 0) {
         node.right = rightRotate(node.right);
         return leftRotate(node);
     }
@@ -88,7 +126,6 @@ function insert(node, key) {
 function drawTree(ctx, node, x, y, spacing) {
     if (!node) return;
 
-    // Draw node
     ctx.beginPath();
     ctx.arc(x, y, 20, 0, 2 * Math.PI);
     ctx.fillStyle = "#87CEEB";
@@ -99,7 +136,6 @@ function drawTree(ctx, node, x, y, spacing) {
     ctx.font = "16px Arial";
     ctx.fillText(node.key, x - 8, y + 5);
 
-    // Draw children
     if (node.left) {
         ctx.moveTo(x, y);
         ctx.lineTo(x - spacing, y + 80);
@@ -121,54 +157,31 @@ function clearCanvas(ctx, canvas) {
 // Global root
 let root = null;
 
+// Insert wrapper
 function addNode() {
     const canvas = document.getElementById("treeCanvas");
     const ctx = canvas.getContext("2d");
     const value = parseInt(document.getElementById("nodeValue").value);
 
-    root = insert(root, value);
-
-    clearCanvas(ctx, canvas);
-    drawTree(ctx, root, canvas.width / 2, 50, 150);
+    if (!isNaN(value)) {
+        root = insert(root, value);
+        clearCanvas(ctx, canvas);
+        drawTree(ctx, root, canvas.width / 2, 50, 150);
+    }
 }
-function deleteNode(root, key) {
-    if (root == null) return root;
 
-    if (key < root.key) {
-        root.left = deleteNode(root.left, key);
-    } else if (key > root.key) {
-        root.right = deleteNode(root.right, key);
-    } else {
-        if (root.left == null || root.right == null) {
-            root = root.left ? root.left : root.right;
-        } else {
-            let temp = minValueNode(root.right);
-            root.key = temp.key;
-            root.right = deleteNode(root.right, temp.key);
-        }
+// Global root already defined above
+let root = null;
+
+// Wrapper for delete button
+function removeNode() {
+    const canvas = document.getElementById("treeCanvas");
+    const ctx = canvas.getContext("2d");
+    const value = parseInt(document.getElementById("deleteValue").value);
+
+    if (!isNaN(value)) {
+        root = deleteAVL(root, value);   // call your AVL delete logic
+        clearCanvas(ctx, canvas);
+        drawTree(ctx, root, canvas.width / 2, 50, 150);
     }
-
-    if (root == null) return root;
-
-    root.height = 1 + Math.max(height(root.left), height(root.right));
-
-    let balance = getBalance(root);
-
-    if (balance > 1 && getBalance(root.left) >= 0)
-        return rightRotate(root);
-
-    if (balance > 1 && getBalance(root.left) < 0) {
-        root.left = leftRotate(root.left);
-        return rightRotate(root);
-    }
-
-    if (balance < -1 && getBalance(root.right) <= 0)
-        return leftRotate(root);
-
-    if (balance < -1 && getBalance(root.right) > 0) {
-        root.right = rightRotate(root.right);
-        return leftRotate(root);
-    }
-
-    return root;
 }

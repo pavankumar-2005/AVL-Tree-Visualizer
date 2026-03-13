@@ -6,11 +6,16 @@
 </head>
 <body>
     <h1>AVL Tree Visualizer</h1>
-    <input type="number" id="nodeValue" placeholder="Enter value">
+
+    <input type="number" id="nodeValue" placeholder="Enter value to insert">
     <button onclick="addNode()">Insert</button>
-    <button onclick="deleteNode()">Delete</button>
+
+    <input type="number" id="deleteValue" placeholder="Enter value to delete">
+    <button onclick="removeNode()">Delete</button>
+
     <br><br>
     <canvas id="treeCanvas" width="800" height="600"></canvas>
+
     <script src="script.js"></script>
 </body>
 </html>
